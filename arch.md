@@ -13,16 +13,13 @@ Timeshift 恢复 Btrfs 快照时，可能出现由于子卷 ID 变更导致无�
 
 使用 vim 编辑器修改 ```/etc/fstab``` 文件：
 
-bash
-vim /etc/fstab
-1
+    1 vim /etc/fstab
 进行如下修改：
 - 删除 ```/``` 和 ```/home``` 条目中最后的 ```subvolid=xx``` 参数
 - 保存后重启即可正常使用。以后恢复快照时无需再次进行此操作。
 - 也可以手动更正 ```subvolid``` ，通过以下命令查看正确的 ID：
 
-bash
-sudo btrfs sub list -u /
+    sudo btrfs sub list -u /
 
 ### FSH划分
 | 目录     |                    用途                    |
