@@ -1,5 +1,10 @@
 #### 命令不懂参数或者忘记了先<br> ```--help or man```
 
+#### 提交重置
+- ```git reset --soft HEAD~1```
+- ```git filter-repo --force --invert-paths --path filename```
+- ```git reflog expire --expire=now --all                                                                                 \n git gc --prune=now --aggressive```
+- 重新初始化
 
 #### win系统更新后grub失效问题
 #### btrfs文件系统只读问题
