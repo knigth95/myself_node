@@ -1,21 +1,34 @@
 #!/bin/bash
 set -e
 
-git add .
+# 获取所有变更文件（包括未跟踪文件）
+declare -A dir_files
+while read -r status file; do
+  dir=$(dirname "$file")
+  last_dir=$(basename "$dir")
+  # 处理根目录显示为root
+  [[ "$last_dir" == "." ]] && last_dir="root" 
+  dir_files["$dir"]+="$file $last_dir "
+done < <(git status --porcelain -z | xargs -0 -n2)
 
-# 获取暂存区文件列表并生成提交信息
-commit_msg=""
-while read -r file; do
-  dir=$(dirname "$file")          # 获取文件目录路径
-  last_dir=$(basename "$dir")     # 获取最后一级目录名
-  commit_msg+="$file $last_dir "  # 拼接为"文件路径 文件夹"
-done < <(git diff --cached --name-only)
+# 分批次处理每个文件夹
+for dir in "${!dir_files[@]}"; do
+  # 重置暂存区
+  git reset > /dev/null 2>&1 || true
 
-# 检查是否有变更文件
-if [ -n "$commit_msg" ]; then
-  # 提交变更并推送
-  git commit -m "$commit_msg"
-  git push -u origin main
-else
-  echo "没有检测到文件变更，跳过提交"
-fi
+  # 添加当前文件夹下的所有变更
+  while read -r file; do
+    git add "$file"
+  done <<< "$(echo ${dir_files[$dir]} | awk '{for(i=1;i<=NF;i+=2) print $i}')"
+
+  # 生成提交信息
+  commit_msg=""
+  while read -r info; do
+    commit_msg+="$info "
+  done <<< "$(echo ${dir_files[$dir]} | awk '{for(i=1;i<=NF;i+=2) print $i, $(i+1)}')"
+
+  # 提交并推送
+  if [ -n "$commit_msg" ]; then
+    git commit -m "$commit_msg" && git push -u origin main
+  fi
+done
